@@ -16,16 +16,15 @@ import java.util.stream.Collectors;
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
-    private final ItemMapper itemMapper;
 
     @Override
     public ItemDto create(Long ownerId, ItemDto itemDto) {
         userRepository.findById(ownerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Owner not found"));
-        Item toSave = itemMapper.fromDto(itemDto, ownerId);
+        Item toSave = ItemMapper.fromDto(itemDto, ownerId);
         toSave.setId(null);
         Item saved = itemRepository.save(toSave);
-        return itemMapper.toDto(saved);
+        return ItemMapper.toDto(saved);
     }
 
     @Override
@@ -45,27 +44,27 @@ public class ItemServiceImpl implements ItemService {
             existing.setAvailable(patch.getAvailable());
         }
         Item updated = itemRepository.update(existing);
-        return itemMapper.toDto(updated);
+        return ItemMapper.toDto(updated);
     }
 
     @Override
     public ItemDto getById(Long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Item not found"));
-        return itemMapper.toDto(item);
+        return ItemMapper.toDto(item);
     }
 
     @Override
     public List<ItemDto> getByOwner(Long ownerId) {
         return itemRepository.findByOwnerId(ownerId).stream()
-                .map(itemMapper::toDto)
+                .map(ItemMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<ItemDto> search(String text) {
         return itemRepository.search(text).stream()
-                .map(itemMapper::toDto)
+                .map(ItemMapper::toDto)
                 .collect(Collectors.toList());
     }
 }

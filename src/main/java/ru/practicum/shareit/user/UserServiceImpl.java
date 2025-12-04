@@ -13,18 +13,17 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository repository;
-    private final UserMapper mapper;
 
     @Override
     public UserDto create(UserDto userDto) {
-        User toSave = mapper.fromDto(userDto);
+        User toSave = UserMapper.fromDto(userDto);
         toSave.setId(null);
-		// уникальность адреса электронной почты
+        // уникальность адреса электронной почты
         if (toSave.getEmail() != null && repository.findByEmail(toSave.getEmail()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
         }
         User saved = repository.save(toSave);
-        return mapper.toDto(saved);
+        return UserMapper.toDto(saved);
     }
 
     @Override
@@ -35,7 +34,7 @@ public class UserServiceImpl implements UserService {
             existing.setName(patch.getName());
         }
         if (patch.getEmail() != null) {
-			// конфликт, если email принадлежит другому пользователю
+            // конфликт, если email принадлежит другому пользователю
             repository.findByEmail(patch.getEmail()).ifPresent(found -> {
                 if (!found.getId().equals(existing.getId())) {
                     throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
@@ -44,20 +43,20 @@ public class UserServiceImpl implements UserService {
             existing.setEmail(patch.getEmail());
         }
         User updated = repository.update(existing);
-        return mapper.toDto(updated);
+        return UserMapper.toDto(updated);
     }
 
     @Override
     public UserDto getById(Long id) {
         User user = repository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        return mapper.toDto(user);
+        return UserMapper.toDto(user);
     }
 
     @Override
     public List<UserDto> getAll() {
         return repository.findAll().stream()
-                .map(mapper::toDto)
+                .map(UserMapper::toDto)
                 .collect(Collectors.toList());
     }
 
