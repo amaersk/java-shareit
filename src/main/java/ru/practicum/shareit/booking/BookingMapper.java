@@ -11,28 +11,28 @@ public class BookingMapper {
         if (booking == null) {
             return null;
         }
-        return new BookingDto(
-                booking.getId(),
-                booking.getStart(),
-                booking.getEnd(),
-                booking.getItem() != null ? booking.getItem().getId() : null,
-                booking.getBooker() != null ? booking.getBooker().getId() : null,
-                booking.getStatus()
-        );
+        return BookingDto.builder()
+                .id(booking.getId())
+                .start(booking.getStart())
+                .end(booking.getEnd())
+                .itemId(booking.getItem() != null ? booking.getItem().getId() : null)
+                .bookerId(booking.getBooker() != null ? booking.getBooker().getId() : null)
+                .status(booking.getStatus())
+                .build();
     }
 
     public Booking fromDto(BookingDto dto, Item item, User booker) {
         if (dto == null) {
             return null;
         }
-        Booking booking = new Booking();
-        booking.setId(dto.getId());
-        booking.setStart(dto.getStart());
-        booking.setEnd(dto.getEnd());
-        booking.setItem(item);
-        booking.setBooker(booker);
-        booking.setStatus(dto.getStatus());
-        return booking;
+        return Booking.builder()
+                .id(dto.getId())
+                .start(dto.getStart())
+                .end(dto.getEnd())
+                .item(item)
+                .booker(booker)
+                .status(dto.getStatus())
+                .build();
     }
 }
 

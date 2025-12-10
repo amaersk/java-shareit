@@ -74,24 +74,40 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemDto> getByOwner(Long ownerId) {
         List<Item> items = itemRepository.findByOwnerId(ownerId);
+        if (items.isEmpty()) {
+            return List.of();
+        }
+
         LocalDateTime now = LocalDateTime.now();
+        List<Long> itemIds = items.stream().map(Item::getId).collect(Collectors.toList());
+
+        // Bulk load last/next bookings for all items to avoid N+1
+        var lastBookingsOrdered = bookingRepository.findLastForItems(itemIds, BookingStatus.APPROVED, now);
+        var nextBookingsOrdered = bookingRepository.findNextForItems(itemIds, BookingStatus.APPROVED, now);
+
+        // Pick first row per item id from ordered lists
+        var lastByItemId = lastBookingsOrdered.stream()
+                .collect(Collectors.toMap(b -> b.getItem().getId(), b -> b, (existing, ignore) -> existing));
+        var nextByItemId = nextBookingsOrdered.stream()
+                .collect(Collectors.toMap(b -> b.getItem().getId(), b -> b, (existing, ignore) -> existing));
+
+        // Bulk load comments for all items
+        var commentsByItemId = commentRepository.findByItemIds(itemIds).stream()
+                .collect(Collectors.groupingBy(c -> c.getItem().getId(),
+                        Collectors.mapping(c -> CommentDto.builder()
+                                .id(c.getId())
+                                .text(c.getText())
+                                .authorName(c.getAuthor().getName())
+                                .created(c.getCreated())
+                                .build(), Collectors.toList())));
+
         return items.stream().map(item -> {
             ItemDto base = ItemMapper.toDto(item);
-            // last and next booking for owner view (only APPROVED considered)
-            var last = bookingRepository.findTopByItemIdAndStatusAndStartLessThanEqualOrderByStartDesc(item.getId(), BookingStatus.APPROVED, now);
-            var next = bookingRepository.findTopByItemIdAndStatusAndStartGreaterThanOrderByStartAsc(item.getId(), BookingStatus.APPROVED, now);
             ItemDto bookingsPart = ItemDto.builder()
-                    .lastBooking(BookingMapper.toDto(last))
-                    .nextBooking(BookingMapper.toDto(next))
+                    .lastBooking(BookingMapper.toDto(lastByItemId.get(item.getId())))
+                    .nextBooking(BookingMapper.toDto(nextByItemId.get(item.getId())))
                     .build();
-            List<CommentDto> comments = commentRepository.findByItemIdOrderByCreatedDesc(item.getId()).stream()
-                    .map(c -> CommentDto.builder()
-                            .id(c.getId())
-                            .text(c.getText())
-                            .authorName(c.getAuthor().getName())
-                            .created(c.getCreated())
-                            .build())
-                    .collect(Collectors.toList());
+            List<CommentDto> comments = commentsByItemId.getOrDefault(item.getId(), List.of());
             return ItemMapper.toDtoWithView(item, base, bookingsPart, comments);
         }).collect(Collectors.toList());
     }
