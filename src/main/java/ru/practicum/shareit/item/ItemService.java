@@ -14,6 +14,8 @@ public interface ItemService {
     List<ItemDto> getByOwner(Long ownerId);
 
     List<ItemDto> search(String text);
+
+    ru.practicum.shareit.item.dto.comment.CommentDto addComment(Long userId, Long itemId, ru.practicum.shareit.item.dto.comment.CommentDto request);
 }
 
 

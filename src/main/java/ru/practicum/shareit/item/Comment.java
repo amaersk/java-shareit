@@ -1,4 +1,4 @@
-package ru.practicum.shareit.booking;
+package ru.practicum.shareit.item;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -15,36 +15,32 @@ import java.util.Objects;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "bookings")
-public class Booking {
+@Table(name = "comments")
+public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "start_time", nullable = false)
-    private LocalDateTime start;
-
-    @Column(name = "end_time", nullable = false)
-    private LocalDateTime end;
+    @Column(name = "text", nullable = false, length = 1000)
+    private String text;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "booker_id", nullable = false)
-    private User booker;
+    @JoinColumn(name = "author_id", nullable = false)
+    private User author;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 16)
-    private BookingStatus status;
+    @Column(nullable = false)
+    private LocalDateTime created;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        Booking booking = (Booking) o;
-        return id != null && Objects.equals(id, booking.id);
+        Comment comment = (Comment) o;
+        return id != null && Objects.equals(id, comment.id);
     }
 
     @Override
@@ -52,3 +48,5 @@ public class Booking {
         return getClass().hashCode();
     }
 }
+
+
