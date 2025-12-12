@@ -24,6 +24,23 @@ CREATE INDEX IF NOT EXISTS idx_items_available ON items(available);
 CREATE INDEX IF NOT EXISTS idx_items_name ON items(lower(name));
 CREATE INDEX IF NOT EXISTS idx_items_description ON items(lower(description));
 
+-- Requests table
+CREATE TABLE IF NOT EXISTS requests (
+  id BIGSERIAL NOT NULL,
+  description VARCHAR(1000) NOT NULL,
+  requestor_id BIGINT NOT NULL,
+  created TIMESTAMP NOT NULL,
+  CONSTRAINT pk_request PRIMARY KEY (id),
+  CONSTRAINT fk_request_requestor FOREIGN KEY (requestor_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_requests_requestor ON requests(requestor_id);
+CREATE INDEX IF NOT EXISTS idx_requests_created ON requests(created);
+
+-- Link item to request (optional)
+ALTER TABLE items
+  ADD CONSTRAINT IF NOT EXISTS fk_item_request FOREIGN KEY (request_id) REFERENCES requests (id) ON DELETE SET NULL;
+
 -- Bookings table
 CREATE TABLE IF NOT EXISTS bookings (
   id BIGSERIAL NOT NULL,
