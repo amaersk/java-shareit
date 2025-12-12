@@ -43,6 +43,22 @@ public class DbItemRepository implements ItemRepository {
         }
         return jpa.searchAvailableByText(text);
     }
+
+    @Override
+    public List<Item> findByRequestId(Long requestId) {
+        if (requestId == null) {
+            return List.of();
+        }
+        return jpa.findByRequestId(requestId);
+    }
+
+    @Override
+    public List<Item> findByRequestIdIn(List<Long> requestIds) {
+        if (requestIds == null || requestIds.isEmpty()) {
+            return List.of();
+        }
+        return jpa.findByRequestIdIn(requestIds);
+    }
 }
 
 

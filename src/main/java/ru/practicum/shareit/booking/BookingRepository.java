@@ -9,16 +9,20 @@ import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     // For booker
-    List<Booking> findByBookerIdOrderByStartDesc(Long bookerId);
+	@Query("select b from Booking b where b.booker.id = :bookerId order by b.start desc")
+	List<Booking> findByBookerIdOrderByStartDesc(@Param("bookerId") Long bookerId);
 
     @Query("select b from Booking b where b.booker.id = :bookerId and b.start <= :now and b.end >= :now order by b.start desc")
     List<Booking> findCurrentByBooker(@Param("bookerId") Long bookerId, @Param("now") LocalDateTime now);
 
-    List<Booking> findByBookerIdAndEndBeforeOrderByStartDesc(Long bookerId, LocalDateTime end);
+	@Query("select b from Booking b where b.booker.id = :bookerId and b.end < :end order by b.start desc")
+	List<Booking> findByBookerIdAndEndBeforeOrderByStartDesc(@Param("bookerId") Long bookerId, @Param("end") LocalDateTime end);
 
-    List<Booking> findByBookerIdAndStartAfterOrderByStartDesc(Long bookerId, LocalDateTime start);
+	@Query("select b from Booking b where b.booker.id = :bookerId and b.start > :start order by b.start desc")
+	List<Booking> findByBookerIdAndStartAfterOrderByStartDesc(@Param("bookerId") Long bookerId, @Param("start") LocalDateTime start);
 
-    List<Booking> findByBookerIdAndStatusOrderByStartDesc(Long bookerId, BookingStatus status);
+	@Query("select b from Booking b where b.booker.id = :bookerId and b.status = :status order by b.start desc")
+	List<Booking> findByBookerIdAndStatusOrderByStartDesc(@Param("bookerId") Long bookerId, @Param("status") BookingStatus status);
 
     // For owner (items owned by user)
     @Query("select b from Booking b where b.item.ownerId = :ownerId order by b.start desc")
